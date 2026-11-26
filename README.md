@@ -14,4 +14,6 @@ This source package is for a separate iPhone and iPad app. It bundles all 24 dai
 
 Run locally on a Mac with Xcode 26 and XcodeGen installed using `xcodegen generate`, then open `AdventChallenge.xcodeproj`. The screenshots in the App Store materials ZIP are browser-rendered previews at App Store dimensions. Cross-check them against the signed iPhone and iPad app before upload.
 
-The share links currently point to the JollyMix Advent Challenge webpage. After Apple assigns the app a numeric ID, supply its App Store URL as JOLLYMIX_APP_STORE_URL when generating the iOS HTML to include a direct download link.
+Settings links to both calendars on jollymix.co.uk and opens the iOS share sheet. Result shares include the door, time, challenge and public Advent Challenge link.
+
+Device checks for this update: focus answers in Doors 4, 6 and 8 on an iPhone, open Door 12 in landscape, and test foil and bite sounds before and after leaving the app.
