@@ -1,0 +1,35 @@
+workflows:
+  ios-app-store:
+    name: JollyMix Advent Challenge for iPhone and iPad
+    integrations:
+      app_store_connect: bluffle_apple
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      xcode: "26.6"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: uk.co.jollymix.adventchallenge2026
+    scripts:
+      - name: Generate and verify Xcode project
+        script: |
+          set -e
+          command -v xcodegen >/dev/null || brew install xcodegen
+          xcodegen generate
+          plutil -lint App/Info.plist App/PrivacyInfo.xcprivacy
+          test -s App/Web/index.html
+      - name: Set App Store signing and build number
+        script: |
+          set -e
+          agvtool new-version -all "$BUILD_NUMBER"
+          xcode-project use-profiles
+      - name: Archive and export signed IPA
+        script: xcode-project build-ipa --project AdventChallenge.xcodeproj --scheme AdventChallenge
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: false
