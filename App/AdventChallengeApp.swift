@@ -24,6 +24,7 @@ private struct CalendarView: UIViewControllerRepresentable {
 
 final class CalendarController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
     private static let shareAction = "jollyMixShare"
+    private static let resetZoomAction = "jollyMixResetCalendarZoom"
     private var calendar: WKWebView?
     private var keyboardPresented = false
 
@@ -31,7 +32,9 @@ final class CalendarController: UIViewController, WKNavigationDelegate, WKScript
         super.viewDidLoad()
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
-        configuration.userContentController.add(ShareRelay(controller: self), name: Self.shareAction)
+        let messages = CalendarMessageRelay(controller: self)
+        configuration.userContentController.add(messages, name: Self.shareAction)
+        configuration.userContentController.add(messages, name: Self.resetZoomAction)
         let calendar = WKWebView(frame: .zero, configuration: configuration)
         let background = UIColor(red: 0.10, green: 0.06, blue: 0.05, alpha: 1)
         self.calendar = calendar
@@ -121,7 +124,14 @@ final class CalendarController: UIViewController, WKNavigationDelegate, WKScript
     }
 
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.name == Self.shareAction, message.frameInfo.isMainFrame,
+        guard message.frameInfo.isMainFrame else { return }
+        if message.name == Self.resetZoomAction {
+            if let scroll = calendar?.scrollView, scroll.zoomScale > scroll.minimumZoomScale + 0.01 {
+                scroll.setZoomScale(scroll.minimumZoomScale, animated: false)
+            }
+            return
+        }
+        guard message.name == Self.shareAction,
               let text = message.body as? String, text.count <= 1024,
               presentedViewController == nil else { return }
         let share = UIActivityViewController(activityItems: [text], applicationActivities: nil)
@@ -134,7 +144,7 @@ final class CalendarController: UIViewController, WKNavigationDelegate, WKScript
 }
 
 // The web view retains its script handlers. Keep the controller reference weak.
-private final class ShareRelay: NSObject, WKScriptMessageHandler {
+private final class CalendarMessageRelay: NSObject, WKScriptMessageHandler {
     private weak var controller: CalendarController?
 
     init(controller: CalendarController) {
